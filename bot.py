@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import asyncio
 import hashlib
 from dotenv import load_dotenv
+import random
 
 load_dotenv()
 
@@ -35,132 +36,152 @@ def save_cache(key, cache_type, data):
     with open(f'cache/{cache_type}/{filename}.json', 'w') as f:
         json.dump(data, f)
 
+async def get_pokemon_details(name: str):
+    try:
+        data = load_cache(name, 'pokemon')
+        if not data:
+            response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{name.lower()}/')
+            if response.status_code == 200:
+                data = response.json()
+                save_cache(name, 'pokemon', data)
+            else:
+                return None
+
+        species_data = load_cache(name, 'pokemon_species')
+        if not species_data:
+            species_response = requests.get(f'https://pokeapi.co/api/v2/pokemon-species/{name.lower()}/')
+            if species_response.status_code == 200:
+                species_data = species_response.json()
+                save_cache(name, 'pokemon_species', species_data)
+            else:
+                return None
+
+        evolution_chain_url = species_data['evolution_chain']['url']
+        evolution_chain_key = url_to_filename(evolution_chain_url)
+        evolution_data = load_cache(evolution_chain_key, 'evolution_chain')
+        if not evolution_data:
+            evolution_response = requests.get(evolution_chain_url)
+            if evolution_response.status_code == 200:
+                evolution_data = evolution_response.json()
+                save_cache(evolution_chain_key, 'evolution_chain', evolution_data)
+            else:
+                return None
+
+        # Get detailed stats
+        stats = {stat['stat']['name']: stat['base_stat'] for stat in data['stats']}
+        hp = stats['hp']
+        attack = stats['attack']
+        defense = stats['defense']
+        special_attack = stats['special-attack']
+        special_defense = stats['special-defense']
+        speed = stats['speed']
+
+        # Get movesets
+        moves = data['moves']
+        level_up_moves = [move['move']['name'] for move in moves if any(version['move_learn_method']['name'] == 'level-up' for version in move['version_group_details'])]
+        egg_moves = [move['move']['name'] for move in moves if any(version['move_learn_method']['name'] == 'egg' for version in move['version_group_details'])]
+
+        # Get held items
+        held_items = [item['item']['name'] for item in data['held_items']]
+
+        # Get abilities
+        abilities = [ability['ability']['name'] for ability in data['abilities']]
+        
+        # Get breeding information
+        egg_groups = [egg_group['name'] for egg_group in species_data['egg_groups']]
+        gender_rate = species_data['gender_rate']
+        capture_rate = species_data['capture_rate']
+
+        # Get type effectiveness
+        types = [t['type']['name'] for t in data['types']]
+        type_data = []
+        for t in types:
+            type_response = requests.get(f'https://pokeapi.co/api/v2/type/{t}')
+            if type_response.status_code == 200:
+                type_data.append(type_response.json())
+
+        strong_against = []
+        weak_against = []
+        for t in type_data:
+            strong_against += [t['name'] for t in t['damage_relations']['double_damage_to']]
+            weak_against += [t['name'] for t in t['damage_relations']['double_damage_from']]
+        
+        # Get encounters
+        encounter_url = f'https://pokeapi.co/api/v2/pokemon/{name.lower()}/encounters'
+        encounter_response = requests.get(encounter_url)
+        if encounter_response.status_code == 200:
+            encounters = encounter_response.json()
+            encounter_locations = [encounter['location_area']['name'] for encounter in encounters]
+        else:
+            encounter_locations = []
+
+        # Recommended build
+        recommended_build = get_recommended_build(name.lower())
+
+        # Constructing the response
+        sprite_url = data['sprites']['front_default']
+        response_text = (
+            f'**{name.capitalize()} Details**\n'
+            f'**Height**: {data["height"] / 10} m\n'
+            f'**Weight**: {data["weight"] / 10} kg\n'
+            f'**Types**: {", ".join(types)}\n'
+            f'**Abilities**: {", ".join(abilities)}\n'
+            f'**Evolution Chain**: {format_evolution_chain(evolution_data["chain"])}\n'
+            f'**Strong Against**: {", ".join(strong_against)}\n'
+            f'**Weak Against**: {", ".join(weak_against)}\n'
+            f'**Encounter Locations**: {", ".join(encounter_locations)}\n'
+            f'**Held Items**: {", ".join(held_items)}\n'
+            f'**Egg Groups**: {", ".join(egg_groups)}\n'
+            f'**Gender Ratio (Female:Male)**: {gender_rate * 12.5}% : {(8 - gender_rate) * 12.5}%\n'
+            f'**Capture Rate**: {capture_rate}\n\n'
+            f'**Stats**:\n'
+            f'HP: {hp}\n'
+            f'Attack: {attack}\n'
+            f'Defense: {defense}\n'
+            f'Special Attack: {special_attack}\n'
+            f'Special Defense: {special_defense}\n'
+            f'Speed: {speed}\n\n'
+            f'**Level-Up Moves**: {", ".join(level_up_moves[:20])}\n\n'  # Limit to 20 moves
+            f'**Egg Moves**: {", ".join(egg_moves[:20])}\n\n'  # Limit to 20 moves
+            f'**Recommended Build**:\n{recommended_build}\n'
+            f'[Image]({sprite_url})\n'
+        )
+
+        return response_text
+
+    except Exception as e:
+        print(f"Error fetching Pokémon details: {e}")
+        return f"An error occurred while fetching the Pokémon details: {e}"
+
+def format_evolution_chain(chain):
+    evo_chain = []
+    current = chain
+    while current:
+        evo_chain.append(current['species']['name'])
+        current = current['evolves_to'][0] if current['evolves_to'] else None
+    return " ➔ ".join(evo_chain)
+
+def get_recommended_build(pokemon_name):
+    # Placeholder for getting recommended build
+    # You can populate this function with actual builds for specific Pokémon
+    return "Recommended build will be available soon."
+
 @interactions.slash_command(
     name="pokemon",
     description="Get information about a Pokémon",
     options=[
         interactions.SlashCommandOption(
-            name="pokemon_name",
+            name="name",
             description="Name of the Pokémon",
             type=interactions.OptionType.STRING,
             required=True,
         ),
     ],
 )
-async def slash_get_pokemon(ctx: interactions.SlashContext, pokemon_name: str):
+async def slash_get_pokemon(ctx: interactions.SlashContext, name: str):
     await ctx.defer()  # Defer the response to avoid timeout
-
-    data = load_cache(pokemon_name, 'pokemon')
-    if not data:
-        response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}/')
-        if response.status_code == 200:
-            data = response.json()
-            save_cache(pokemon_name, 'pokemon', data)
-        else:
-            await ctx.send(f'Could not find Pokémon named "{pokemon_name}".')
-            return
-
-    # Basic Info
-    height = data['height'] / 10  # decimeters to meters
-    weight = data['weight'] / 10  # hectograms to kilograms
-    types = [t['type']['name'] for t in data['types']]
-    abilities = [a['ability']['name'] for a in data['abilities']]
-    sprite_url = data['sprites']['front_default']
-
-    # Evolution Chain
-    species_data = load_cache(data['species']['url'], 'pokemon_species')
-    if not species_data:
-        species_response = requests.get(data['species']['url'])
-        if species_response.status_code == 200:
-            species_data = species_response.json()
-            save_cache(data['species']['url'], 'pokemon_species', species_data)
-        else:
-            await ctx.send(f'Could not retrieve species data for "{pokemon_name}".')
-            return
-    
-    evolution_chain_url = species_data['evolution_chain']['url']
-    evolution_data = load_cache(evolution_chain_url, 'evolution_chain')
-    if not evolution_data:
-        response = requests.get(evolution_chain_url)
-        if response.status_code == 200:
-            evolution_data = response.json()
-            save_cache(evolution_chain_url, 'evolution_chain', evolution_data)
-        else:
-            await ctx.send(f'Could not retrieve evolution chain for "{pokemon_name}".')
-            return
-
-    evolution_chain = []
-    current = evolution_data['chain']
-    while current:
-        species_name = current['species']['name'].capitalize()
-        evolution_chain.append(species_name)
-        if current['evolves_to']:
-            current = current['evolves_to'][0]
-        else:
-            break
-
-    chain_text = ' ➔ '.join(evolution_chain)
-
-    # Type Effectiveness
-    effectiveness = load_cache('type_effectiveness', 'type_effectiveness')
-    if not effectiveness:
-        response = requests.get('https://pokeapi.co/api/v2/type/')
-        if response.status_code == 200:
-            effectiveness = response.json()
-            save_cache('type_effectiveness', 'type_effectiveness', effectiveness)
-        else:
-            await ctx.send(f'Could not retrieve type effectiveness data.')
-            return
-
-    strong_against = []
-    weak_against = []
-    for t in types:
-        type_data = next((item for item in effectiveness['results'] if item['name'] == t), None)
-        if type_data:
-            type_detail = load_cache(type_data['url'], 'type')
-            if not type_detail:
-                response = requests.get(type_data['url'])
-                if response.status_code == 200:
-                    type_detail = response.json()
-                    save_cache(type_data['url'], 'type', type_detail)
-                else:
-                    await ctx.send(f'Could not retrieve type data for "{t}".')
-                    return
-            
-            strong_against.extend([x['name'] for x in type_detail['damage_relations']['double_damage_to']])
-            weak_against.extend([x['name'] for x in type_detail['damage_relations']['double_damage_from']])
-
-    strong_against = set(strong_against)
-    weak_against = set(weak_against)
-
-    # Encounters
-    encounter_data = load_cache(pokemon_name, 'encounters')
-    if not encounter_data:
-        response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}/encounters')
-        if response.status_code == 200:
-            encounter_data = response.json()
-            save_cache(pokemon_name, 'encounters', encounter_data)
-        else:
-            await ctx.send(f'Could not retrieve encounter data for "{pokemon_name}".')
-            return
-
-    encounter_locations = [e['location_area']['name'].replace('-', ' ').capitalize() for e in encounter_data]
-
-    # Build and send the response
-    response_text = (
-        f'**{pokemon_name.capitalize()}**\n'
-        f'**Height**: {height} m\n'
-        f'**Weight**: {weight} kg\n'
-        f'**Types**: {", ".join(types)}\n'
-        f'**Abilities**: {", ".join(abilities)}\n'
-        f'**Evolution Chain**: {chain_text}\n'
-        f'**Strong Against**: {", ".join(strong_against)}\n'
-        f'**Weak Against**: {", ".join(weak_against)}\n'
-        f'**Encounter Locations**: {", ".join(encounter_locations)}\n'
-        f'**Image Link**: [Image]({sprite_url})'
-    )
-
-    await ctx.send(response_text)
+    response_text = await get_pokemon_details(name)
+    await ctx.send(response_text[:2000])  # Ensure message length is within Discord's limit
 
 @interactions.slash_command(
     name="item",
@@ -241,6 +262,73 @@ async def check_reminders():
                 await user.send(f'Reminder: {message}')
                 del reminders[user_id]
         await asyncio.sleep(60)
+
+@interactions.slash_command(
+    name="random_pokemon",
+    description="Get information about a random Pokémon",
+)
+async def slash_get_random_pokemon(ctx: interactions.SlashContext):
+    await ctx.defer()  # Defer the response to avoid timeout
+
+    try:
+        response = requests.get('https://pokeapi.co/api/v2/pokemon?limit=1000')
+        if response.status_code == 200:
+            data = response.json()
+            random_pokemon = random.choice(data['results'])
+            pokemon_name = random_pokemon['name']
+            response_text = await get_pokemon_details(pokemon_name)
+            await ctx.send(response_text[:2000])  # Ensure message length is within Discord's limit
+        else:
+            await ctx.send('Could not retrieve Pokémon list.')
+
+    except Exception as e:
+        print(f"Error fetching random Pokémon: {e}")
+        await ctx.send(f"An error occurred while fetching a random Pokémon: {e}")
+
+@interactions.slash_command(
+    name="pokemon_of_the_day",
+    description="Get information about the Pokémon of the day",
+)
+async def slash_get_pokemon_of_the_day(ctx: interactions.SlashContext):
+    await ctx.defer()  # Defer the response to avoid timeout
+
+    try:
+        today = datetime.now().strftime("%Y-%m-%d")
+        data = load_cache(today, 'pokemon_of_the_day')
+        if not data:
+            response = requests.get('https://pokeapi.co/api/v2/pokemon?limit=1000')
+            if response.status_code == 200:
+                all_pokemon = response.json()['results']
+                pokemon_name = random.choice(all_pokemon)['name']
+                response_text = await get_pokemon_details(pokemon_name)
+                save_cache(today, 'pokemon_of_the_day', {'pokemon_name': pokemon_name})
+                await ctx.send(response_text[:2000])  # Ensure message length is within Discord's limit
+            else:
+                await ctx.send('Could not retrieve Pokémon list.')
+
+        else:
+            pokemon_name = data['pokemon_name']
+            response_text = await get_pokemon_details(pokemon_name)
+            await ctx.send(response_text[:2000])  # Ensure message length is within Discord's limit
+
+    except Exception as e:
+        print(f"Error fetching Pokémon of the day: {e}")
+        await ctx.send(f"An error occurred while fetching the Pokémon of the day: {e}")
+
+@interactions.slash_command(
+    name="help",
+    description="Get a list of all commands",
+)
+async def slash_help(ctx: interactions.SlashContext):
+    help_text = (
+        "**PokeBot Commands**\n\n"
+        "/pokemon `name`: Get detailed information about a specific Pokémon.\n"
+        "/item `item_name`: Get information about a specific item.\n"
+        "/remind `time` `message`: Set a reminder that will notify you after a specified time.\n"
+        "/random_pokemon: Get information about a random Pokémon.\n"
+        "/pokemon_of_the_day: Get information about the Pokémon of the day.\n"
+    )
+    await ctx.send(help_text)
 
 # Start the check_reminders task
 @bot.event
