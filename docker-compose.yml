@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  pokebot:
+    build: .
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    ports:
+      - "80:80"
+    volumes:
+      - .:/app
