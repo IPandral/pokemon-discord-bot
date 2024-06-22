@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import asyncio
 import hashlib
 import random
+from recommended_builds import get_recommended_build
 
 load_dotenv()
 
@@ -160,11 +161,6 @@ def format_evolution_chain(chain):
         evo_chain.append(current['species']['name'])
         current = current['evolves_to'][0] if current['evolves_to'] else None
     return " ➔ ".join(evo_chain)
-
-def get_recommended_build(pokemon_name):
-    # Placeholder for getting recommended build
-    # You can populate this function with actual builds for specific Pokémon
-    return "Recommended build will be available soon."
 
 @interactions.slash_command(
     name="pokemon",
