@@ -69,9 +69,18 @@ cd pokemon-discord-bot
 
 2. Build and run the Docker container:
 ```
-docker build -t pokebot .
-docker run -d --name='pokebot' --net='bridge' -e TZ="Australia/Perth" -e HOST_OS="OS" -e HOST_HOSTNAME="Name" -e HOST_CONTAINERNAME="pokebot" -l net.unraid.docker.managed=dockerman -e BOT_TOKEN=your_discord_bot_token pokebot:latest
+docker build -t pokemon-discord-bot .
+docker run -d --name='pokebot' --net='bridge' -e TZ="Australia/Perth" -e HOST_OS="OS" -e HOST_HOSTNAME="Name" -e HOST_CONTAINERNAME="pokebot" -l net.unraid.docker.managed=dockerman -e BOT_TOKEN=your_discord_bot_token pokemon-discord-bot:latest
 ```
+Replace "your_discord_bot_token" with your actual discord bot token from [Discord Developer Portal](https://discord.com/developers/applications)
+
+## deploy from my docker Hub Repo
+```
+docker run -d --name='pokebot' --net='bridge' -e TZ="Australia/Perth" -e HOST_OS="OS" -e HOST_HOSTNAME="Name" -e HOST_CONTAINERNAME="pokebot" -l net.unraid.docker.managed=dockerman -e BOT_TOKEN=your_discord_bot_token ipandral/pokemon-discord-bot:latest
+```
+Replace "your_discord_bot_token" with your actual discord bot token from [Discord Developer Portal](https://discord.com/developers/applications)
+
+[Docker Hub Repo](https://hub.docker.com/repository/docker/ipandral/pokemon-discord-bot/general)
 
 ## Usage
 
