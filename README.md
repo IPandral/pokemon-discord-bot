@@ -1,4 +1,3 @@
-
 # Pokémon Discord Bot
 
 This is a Discord bot that provides detailed information about Pokémon. It can fetch Pokémon details, including stats, evolution chains, type effectiveness, encounter locations, and recommended builds. It also supports setting reminders and fetching random Pokémon or Pokémon of the day.
@@ -26,8 +25,10 @@ Get detailed information about a specific Pokémon.
 
 Example:
 ```
-/pokemon Pikachu
+/pokemon Charizard
+
 ```
+<img width="857" alt="Charizard-Example" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/167661eb-0e24-4e59-a047-209db8ea4d88">
 
 ### `/item item_name`
 
@@ -37,6 +38,8 @@ Example:
 ```
 /item Potion
 ```
+<img width="380" alt="item-example" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/08419ff9-45d5-4351-b9df-444aba116e5b">
+
 
 ### `/remind time message`
 
@@ -46,18 +49,26 @@ Example:
 ```
 /remind 10 eggs-hatched
 ```
+<img width="269" alt="reminder-example" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/4163ae25-f074-447c-902b-668c18d17453">
+
 
 ### `/random_pokemon`
 
 Get information about a random Pokémon.
+<img width="870" alt="random-example" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/e4fc08cb-cc17-4349-abde-42fbc48a8ff0">
+
 
 ### `/pokemon_of_the_day`
 
 Get information about the Pokémon of the day.
+<img width="907" alt="pokemon-of-the-day" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/ff1098b4-b92d-481b-a865-daae64644d43">
+
 
 ### `/help`
 
 Get a list of available commands and their descriptions.
+<img width="634" alt="help-example" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/d2b21681-997f-4b56-bbd6-ea81e96f24f6">
+
 
 ## Installation
 
