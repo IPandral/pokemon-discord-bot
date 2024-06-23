@@ -177,7 +177,29 @@ def format_evolution_chain(chain):
 async def slash_get_pokemon(ctx: interactions.SlashContext, name: str):
     await ctx.defer()  # Defer the response to avoid timeout
     response_text = await get_pokemon_details(name)
-    await ctx.send(response_text[:2000])  # Ensure message length is within Discord's limit
+    
+    # Split the response into chunks of 2000 characters or less without cutting words
+    def split_message(message, max_length=2000):
+        lines = message.split('\n')
+        chunks = []
+        current_chunk = ''
+        
+        for line in lines:
+            if len(current_chunk) + len(line) + 1 > max_length:
+                chunks.append(current_chunk)
+                current_chunk = line + '\n'
+            else:
+                current_chunk += line + '\n'
+        
+        if current_chunk:
+            chunks.append(current_chunk)
+        
+        return chunks
+    
+    response_chunks = split_message(response_text)
+    
+    for chunk in response_chunks:
+        await ctx.send(chunk)
 
 @interactions.slash_command(
     name="item",
