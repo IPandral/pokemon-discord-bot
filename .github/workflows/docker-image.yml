@@ -35,8 +35,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ secrets.DOCKER_USERNAME }}/pokemon-discord-bot:latest
 
     - name: Log out from Docker Hub
       run: docker logout
