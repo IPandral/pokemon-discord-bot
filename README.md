@@ -1,10 +1,12 @@
-# Pokémon Discord Bot
+# Pokemon Discord Bot
 
-This is a Discord bot that provides detailed information about Pokémon. It can fetch Pokémon details, including stats, evolution chains, type effectiveness, encounter locations, and recommended builds. It also supports setting reminders and fetching random Pokémon or Pokémon of the day.
+This is a Discord bot that provides detailed information about Pokemon. It can fetch Pokemon details, including stats, evolution chains, type effectiveness, encounter locations, and recommended builds. It also supports setting reminders and fetching random Pokémon or Pokemon of the day.
+
+I also run my own discord bot that you can just invite to your server you can add it at pokebot.matthewrevill.com
 
 ## Features
 
-- Get detailed Pokémon information:
+- Get detailed Pokemon information:
   - Basic stats (HP, Attack, Defense, etc.)
   - Evolution chain
   - Type effectiveness
@@ -15,13 +17,13 @@ This is a Discord bot that provides detailed information about Pokémon. It can 
   - Recommended competitive builds
 - Set reminders
 - Fetch a random Pokémon
-- Fetch the Pokémon of the day
+- Fetch the Pokemon of the day
 
 ## Commands
 
 ### `/pokemon name`
 
-Get detailed information about a specific Pokémon.
+Get detailed information about a specific Pokemon.
 
 Example:
 ```
@@ -54,13 +56,13 @@ Example:
 
 ### `/random_pokemon`
 
-Get information about a random Pokémon.
+Get information about a random Pokemon.
 <img width="870" alt="random-example" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/e4fc08cb-cc17-4349-abde-42fbc48a8ff0">
 
 
 ### `/pokemon_of_the_day`
 
-Get information about the Pokémon of the day.
+Get information about the Pokemon of the day.
 <img width="907" alt="pokemon-of-the-day" src="https://github.com/IPandral/pokemon-discord-bot/assets/53560986/ff1098b4-b92d-481b-a865-daae64644d43">
 
 
