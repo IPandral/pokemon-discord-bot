@@ -2,7 +2,7 @@
 
 This is a Discord bot that provides detailed information about Pokemon. It can fetch Pokemon details, including stats, evolution chains, type effectiveness, encounter locations, and recommended builds. It also supports setting reminders and fetching random Pokemon or Pokemon of the day.
 
-I also run my own discord bot that you can just invite to your server you can add it at pokebot.matthewrevill.com
+I also run my own discord bot that you can just invite to your server you can add it at https://pokebot.matthewrevill.com/
 
 ## Features
 
