@@ -345,6 +345,11 @@ async def slash_help(ctx: interactions.SlashContext):
         "/remind `time` `message`: Set a reminder that will notify you after a specified time.\n"
         "/random_pokemon: Get information about a random Pokémon.\n"
         "/pokemon_of_the_day: Get information about the Pokémon of the day.\n"
+        "/help: Get a list of all commands.\n"
+        "Join the discord for support and feedback: https://discord.gg/NwBEvXwemq\n"
+        "or visit the GitHub repository: https://github.com/IPandral/pokemon-discord-bot\n"
+        "or the bot website: https://pokebot.matthewrevill.com/\n\n"
+        "Bot created by: IPandral\n"
     )
     await ctx.send(help_text)
 
@@ -354,6 +359,7 @@ async def on_ready():
     print(f'Logged in as {bot.me.name}')
     # Start the reminder checker
     asyncio.create_task(check_reminders())
+     
 
 # Run the bot
 bot.start()
